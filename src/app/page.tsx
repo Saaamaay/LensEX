@@ -1,7 +1,3 @@
-/// Add in a pie chart that has the selected topics on. Then a second pie chart view that breaks the pie chart down by subtopic too. 
-//// change graph text to spike detection
-///// add edit box for entitys. just a text box when each new line is a numbered bullet point
-
 'use client';
 
 import React, { useState, useEffect} from 'react';
@@ -16,6 +12,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { startOfWeek, addWeeks, format, eachDayOfInterval } from 'date-fns';
+import VisualizationComponent from './VisualizationComponent';
 
 
 const EntityXLensUI = () => {
@@ -29,13 +26,6 @@ const EntityXLensUI = () => {
   const [weeklyData, setWeeklyData] = useState([]);
   const [spikeData, setSpikeData] = useState([]);
   const [taxonomyChartData, setTaxonomyChartData] = useState([]);
-
-
-
-
-  
-
-  
 
   const targetingOptions = [
     { name: 'GEOGRAPHY', description: 'Any geography' },
@@ -144,14 +134,143 @@ const EntityXLensUI = () => {
     prepareTaxonomyPieChartData(selectedTaxonomy);
   }, [selectedTaxonomy]);
   
+  const renderSpikeDetection = () => (
+    <div>
+      <h4 className="font-semibold mb-2">Spike Detection</h4>
+      <p className="text-sm text-gray-600 mb-2">Inventory scanner showing potential spikes</p>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={spikeData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="date" 
+            interval={Math.floor(spikeData.length / 7)}
+            angle={-45}
+            textAnchor="end"
+            height={50}
+          />
+          <YAxis />
+          <Tooltip content={<CustomTooltip />} />
+          <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
+  
+      {/* Start new section for taxonomy distribution */}
+      <h4 className="font-semibold mb-2">Selected Topics/Sub Topics:</h4>
+      <div className="mt-4">
+        <h5 className="font-medium mb-2">Taxonomy Distribution of Selected Entities</h5>
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={taxonomyChartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              fill="#8884d8"
+              label={(entry) => entry.name}
+            >
+              {taxonomyChartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 60%)`} />
+              ))}
+            </Pie>
+            {Object.keys(selectedTaxonomy || {}).length === 0 && (
+              <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                Please select taxonomy segments
+              </text>
+            )}
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+  
+      {/* New Entity List Section */}
+      <div className="mt-4">
+        <h4 className="font-semibold mb-2">Entity List:</h4>
+        <ul className="list-decimal list-inside">
+          {entityList.map((entity, index) => (
+            <li key={index} className="text-sm">{entity}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+
+  const renderReach = () => (
+    <div>
+      <div>
+        <h4 className="font-semibold mb-2">Supply Strategy</h4>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span>Exchange</span>
+            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+              <div className="bg-blue-600 h-2.5 rounded-full" style={{width: '100%'}}></div>
+            </div>
+            <span className="text-sm">926B imps</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>Deals</span>
+            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+              <div className="bg-gray-400 h-2.5 rounded-full" style={{width: '92%'}}></div>
+            </div>
+            <span className="text-sm">856B imps</span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <h4 className="font-semibold mb-2">Geography</h4>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <span>London</span>
+            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '100%'}}></div>
+            </div>
+            <span className="text-sm">574B imps</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>New York</span>
+            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '59%'}}></div>
+            </div>
+            <span className="text-sm">339B imps</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>Milan</span>
+            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '58%'}}></div>
+            </div>
+            <span className="text-sm">333B imps</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>Paris</span>
+            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '6%'}}></div>
+            </div>
+            <span className="text-sm">346M imps</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  
+  const renderBrandVisualization = () => (
+    <div>
+      <h4 className="font-semibold mb-2">Brand Visualization</h4>
+      <p className="text-sm text-gray-600 mb-2">Visual representation of brand distribution</p>
+      <VisualizationComponent
+        taxonomyData={selectedTaxonomy}
+        currentView="main"
+        setCurrentView={() => {}}
+      />
+    </div>
+  );
+
   return (
     <div className="container mx-auto p-4">
       <header className="flex justify-between items-center mb-6 border-b pb-2">
         <h1 className="text-2xl font-bold text-red-500">EntityX Lens</h1>
         <div className="flex space-x-4">
-          <Button variant="ghost">Audiences</Button>
-          <Button variant="ghost">Report</Button>
-          <Button variant="ghost">Admin</Button>
+          <Button variant="ghost">Planning</Button>
         </div>
         <div className="flex space-x-4 items-center">
           <Button variant="ghost" className="p-2">
@@ -273,119 +392,22 @@ const EntityXLensUI = () => {
               </div>
             ) : showResults ? (
               <ScrollArea className="h-[calc(100vh-200px)]">
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="font-semibold mb-2">Spike Detection</h4>
-                    <p className="text-sm text-gray-600 mb-2">Inventory scanner showing potential spikes</p>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={spikeData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="date" 
-                          interval={Math.floor(spikeData.length / 7)}
-                          angle={-45}
-                          textAnchor="end"
-                          height={50}
-                        />
-                        <YAxis />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Supply Strategy</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span>Exchange</span>
-                        <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                          <div className="bg-blue-600 h-2.5 rounded-full" style={{width: '100%'}}></div>
-                        </div>
-                        <span className="text-sm">926B imps</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Deals</span>
-                        <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                          <div className="bg-gray-400 h-2.5 rounded-full" style={{width: '92%'}}></div>
-                        </div>
-                        <span className="text-sm">856B imps</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Geography</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span>London</span>
-                        <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                          <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '100%'}}></div>
-                        </div>
-                        <span className="text-sm">574B imps</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>New York</span>
-                        <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                          <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '59%'}}></div>
-                        </div>
-                        <span className="text-sm">339B imps</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Milan</span>
-                        <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                          <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '58%'}}></div>
-                        </div>
-                        <span className="text-sm">333B imps</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Paris</span>
-                        <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-                          <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '6%'}}></div>
-                        </div>
-                        <span className="text-sm">346M imps</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-              <h4 className="font-semibold mb-2">Selected Topics/Sub Topics:</h4>
-
-            <div className="mt-4">
-                <h5 className="font-medium mb-2">Taxonomy Distribution of Selected Entities</h5>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                    data={taxonomyChartData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    label={(entry) => entry.name} 
-                  >
-                    {taxonomyChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={`hsl(${index * 45}, 70%, 60%)`} />
-                    ))}
-                  </Pie>
-                    {Object.keys(selectedTaxonomy).length === 0 && (
-                      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
-                        Please select taxonomy segments
-                      </text>
-                    )}
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            <div className="mt-4">
-              <h4 className="font-semibold mb-2">Entity List:</h4>
-              <ul className="list-decimal list-inside">
-                {entityList.map((entity, index) => (
-                  <li key={index} className="text-sm">{entity}</li>
-                ))}
-              </ul>
-            </div>
+                <Tabs defaultValue="brand" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="brand">Brand Visualization</TabsTrigger>
+                    <TabsTrigger value="spike">Spike Detection</TabsTrigger>
+                    <TabsTrigger value="reach">Reach</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="brand">
+                    {renderBrandVisualization()}
+                  </TabsContent>
+                  <TabsContent value="spike">
+                    {renderSpikeDetection()}
+                  </TabsContent>
+                  <TabsContent value="reach">
+                    {renderReach()}
+                  </TabsContent>
+                </Tabs>
               </ScrollArea>
             ) : (
               <div className="flex flex-col justify-center items-center h-64 text-center">
