@@ -110,4 +110,4 @@ const AssociationGraph = ({ entityName }) => {
   );
 };
 
-export default AssociationGraph;
+export default AssociationGraph; 
