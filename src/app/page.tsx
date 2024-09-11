@@ -15,11 +15,35 @@ import { startOfWeek, addWeeks, format, eachDayOfInterval } from 'date-fns';
 import VisualizationComponent from './VisualizationComponent';
 
 const calculatePercentages = (data, view) => {
+  console.log("Input data:", data);
+  console.log("Current view:", view);
+
   const percentages = {};
-  const totalItems = Object.keys(data).length;
-  Object.keys(data).forEach(key => {
-    percentages[key] = (Math.random() * 100 / totalItems).toFixed(2);
+  
+  if (view === 'main') {
+    Object.keys(data).forEach(key => {
+      percentages[key] = (Math.random() * 100).toFixed(2);
+    });
+  } else if (data[view]) {
+    const subtopics = data[view];
+    if (Array.isArray(subtopics)) {
+      subtopics.forEach(subtopic => {
+        percentages[subtopic] = (Math.random() * 100).toFixed(2);
+      });
+    } else if (typeof subtopics === 'object') {
+      Object.keys(subtopics).forEach(subtopic => {
+        percentages[subtopic] = (Math.random() * 100).toFixed(2);
+      });
+    }
+  }
+
+  // Normalize percentages to ensure they sum up to 100
+  const total = Object.values(percentages).reduce((sum, value) => sum + parseFloat(value), 0);
+  Object.keys(percentages).forEach(key => {
+    percentages[key] = ((parseFloat(percentages[key]) / total) * 100).toFixed(2);
   });
+
+  console.log("Calculated percentages:", percentages);
   return percentages;
 };
 
@@ -37,10 +61,7 @@ const EntityXLensUI = () => {
   const [percentages, setPercentages] = useState({});
 
   const targetingOptions = [
-    { name: 'GEOGRAPHY', description: 'Any geography' },
     { name: 'TAXONOMY SEGMENTS', description: 'All Topic Entities' },
-    { name: 'DEVICE TYPE', description: 'Any device type' },
-    { name: 'INVENTORY LIST', description: 'Any inventory list' },
     { name: 'ENTITY LIST', description: 'All Topic Entities' },
   ];
 
@@ -222,39 +243,6 @@ const EntityXLensUI = () => {
               <div className="bg-gray-400 h-2.5 rounded-full" style={{width: '92%'}}></div>
             </div>
             <span className="text-sm">856B imps</span>
-          </div>
-        </div>
-      </div>
-      <div className="mt-4">
-        <h4 className="font-semibold mb-2">Geography</h4>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span>London</span>
-            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '100%'}}></div>
-            </div>
-            <span className="text-sm">574B imps</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>New York</span>
-            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '59%'}}></div>
-            </div>
-            <span className="text-sm">339B imps</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Milan</span>
-            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '58%'}}></div>
-            </div>
-            <span className="text-sm">333B imps</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>Paris</span>
-            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-yellow-400 h-2.5 rounded-full" style={{width: '6%'}}></div>
-            </div>
-            <span className="text-sm">346M imps</span>
           </div>
         </div>
       </div>
