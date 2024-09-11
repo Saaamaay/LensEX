@@ -5,7 +5,7 @@ const VisualizationComponent = ({ taxonomyData, currentView, setCurrentView }) =
   const svgRef = useRef(null);
 
   const drawVisualization = () => {
-    const width = 500;
+    const width = 400; // Reduced from 500
     const height = 500;
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
@@ -23,23 +23,27 @@ const VisualizationComponent = ({ taxonomyData, currentView, setCurrentView }) =
       return;
     }
 
+    // More aggressive size adjustment
+    const maxSize = Math.min(60, 300 / Math.sqrt(data.length));
+    const minSize = Math.max(5, maxSize / 4);
+
     const sizeScale = d3.scaleSqrt()
       .domain([0, d3.max(data, d => d.value)])
-      .range([30, 80]);
+      .range([minSize, maxSize]);
 
     const padding = 10;
     const simulation = d3.forceSimulation(data)
-      .force("charge", d3.forceManyBody().strength(-100))
+      .force("charge", d3.forceManyBody().strength(-200)) // Increased strength
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(d => sizeScale(d.value)))
-      .force("x", d3.forceX(width / 2).strength(0.1))
-      .force("y", d3.forceY(height / 2).strength(0.1))
+      .force("collision", d3.forceCollide().radius(d => sizeScale(d.value) + 2)) // Added padding
+      .force("x", d3.forceX(width / 2).strength(0.1)) // Increased strength
+      .force("y", d3.forceY(height / 2).strength(0.1)) // Increased strength
       .force("boundary", function() {
         for (let i = 0; i < data.length; i++) {
           const d = data[i];
           const r = sizeScale(d.value);
-          d.x = Math.max(r + padding, Math.min(width - r - padding, d.x));
-          d.y = Math.max(r + padding, Math.min(height - r - padding, d.y));
+          d.x = Math.max(r, Math.min(width - r, d.x));
+          d.y = Math.max(r, Math.min(height - r, d.y));
         }
       });
 
@@ -82,7 +86,7 @@ const VisualizationComponent = ({ taxonomyData, currentView, setCurrentView }) =
       .attr("dy", ".35em")
       .attr("fill", "white")
       .text(d => d.name)
-      .style("font-size", d => `${Math.min(sizeScale(d.value) / 3, 16)}px`)
+      .style("font-size", d => `${Math.min(sizeScale(d.value) / 2.5, 12)}px`) // Reduced max font size
       .call(wrapText, d => sizeScale(d.value) * 1.8);
 
     nodes.on("click", (event, d) => {
@@ -101,14 +105,14 @@ const VisualizationComponent = ({ taxonomyData, currentView, setCurrentView }) =
       });
     });
 
-    svg.attr("viewBox", [-padding, -padding, width + 2*padding, height + 2*padding]);
+    svg.attr("viewBox", [0, 0, width, height]);
   };
 
   useEffect(() => {
     drawVisualization();
   }, [taxonomyData, currentView]);
 
-  return <svg ref={svgRef} width="500" height="500"></svg>;
+  return <svg ref={svgRef} width="400" height="500"></svg>; // Adjusted width
 };
 
 export default VisualizationComponent;

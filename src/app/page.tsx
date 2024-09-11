@@ -13,6 +13,13 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { startOfWeek, addWeeks, format, eachDayOfInterval } from 'date-fns';
 import VisualizationComponent from './VisualizationComponent';
+import AssociationTab from './AssociationTab';
+import dynamic from 'next/dynamic';
+
+const WorldMap = dynamic(() => import('./WorldMap'), {
+  ssr: false,
+  loading: () => <p>Loading map...</p>
+});
 
 const calculatePercentages = (data, view) => {
   console.log("Input data:", data);
@@ -222,29 +229,59 @@ const EntityXLensUI = () => {
     </div>
   );
 
-  const renderReach = () => (
-    <div>
-      <div>
-        <h4 className="font-semibold mb-2">Supply Strategy</h4>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span>Exchange</span>
-            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-blue-600 h-2.5 rounded-full" style={{width: '100%'}}></div>
+  const renderReach = () => {
+    const geographyData = [
+      { country: 'United States', imps: '450B' },
+      { country: 'United Kingdom', imps: '120B' },
+      { country: 'Germany', imps: '100B' },
+      { country: 'France', imps: '80B' },
+      { country: 'Japan', imps: '70B' },
+      { country: 'Canada', imps: '50B' },
+      { country: 'Australia', imps: '40B' },
+      { country: 'Other', imps: '16B' },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h4 className="font-semibold mb-2">Supply Strategy</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span>Exchange</span>
+              <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+                <div className="bg-blue-600 h-2.5 rounded-full" style={{width: '100%'}}></div>
+              </div>
+              <span className="text-sm">926B imps</span>
             </div>
-            <span className="text-sm">926B imps</span>
+            <div className="flex justify-between items-center">
+              <span>Deals</span>
+              <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
+                <div className="bg-gray-400 h-2.5 rounded-full" style={{width: '92%'}}></div>
+              </div>
+              <span className="text-sm">856B imps</span>
+            </div>
           </div>
-          <div className="flex justify-between items-center">
-            <span>Deals</span>
-            <div className="w-2/3 bg-gray-200 rounded-full h-2.5">
-              <div className="bg-gray-400 h-2.5 rounded-full" style={{width: '92%'}}></div>
+        </div>
+
+        <div>
+          <h4 className="font-semibold mb-2">Geography</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border rounded-lg p-4 flex items-center justify-center bg-gray-100">
+              <p className="text-gray-500">Map placeholder</p>
             </div>
-            <span className="text-sm">856B imps</span>
+            <div className="space-y-2 border rounded-lg p-4">
+              {geographyData.map((item, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span>{item.country}</span>
+                  <span className="text-sm font-semibold">{item.imps}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
   
 
   const renderBrandVisualization = () => (
@@ -324,12 +361,12 @@ const EntityXLensUI = () => {
         </div>
       </header>
 
-      <h2 className="text-xl font-semibold mb-4">Create a New Plan</h2>
+      <h2 className="text-xl font-semibold mb-4">Create a New Lens</h2>
 
       <div className="flex">
         <Card className="w-1/3 mr-4">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Plan Setup and Targeting</h3>
+            <h3 className="text-lg font-semibold mb-4">Lens Setup</h3>
             <div className="space-y-4">
               <div>
                 <label className="block mb-2 text-sm font-medium">Name*</label>
@@ -419,11 +456,16 @@ const EntityXLensUI = () => {
                 <Tabs defaultValue="brand">
                   <TabsList className="mb-4">
                     <TabsTrigger value="brand">Brand</TabsTrigger>
-                    <TabsTrigger value="reach">Reach</TabsTrigger>
+                    <TabsTrigger value="association">Association</TabsTrigger>
                     <TabsTrigger value="insights">Insights</TabsTrigger>
+                    <TabsTrigger value="reach">Reach</TabsTrigger>
+                    
                   </TabsList>
                   <TabsContent value="brand">
                     {renderBrandVisualization()}
+                  </TabsContent>
+                  <TabsContent value="association">
+                    <AssociationTab />
                   </TabsContent>
                   <TabsContent value="reach">
                     {renderReach()}
