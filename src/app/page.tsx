@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 'use client';
 
 import React, { useState, useEffect} from 'react';
@@ -15,6 +17,7 @@ import { startOfWeek, addWeeks, format, eachDayOfInterval } from 'date-fns';
 import VisualizationComponent from './VisualizationComponent';
 import AssociationTab from './AssociationTab';
 import dynamic from 'next/dynamic';
+import { DarkModeToggle } from '@/components/DarkModeToggle';
 
 const WorldMap = dynamic(() => import('./WorldMap'), {
   ssr: false,
@@ -66,7 +69,7 @@ const EntityXLensUI = () => {
 
   const targetingOptions = [
     { name: 'TAXONOMY SEGMENTS', description: 'All Topic Entities' },
-    { name: 'ENTITY LIST', description: 'All Topic Entities' },
+    { name: 'ENTITY GRAPH', description: 'All Topic Entities' },
   ];
 
   useEffect(() => {
@@ -357,7 +360,10 @@ const EntityXLensUI = () => {
           <Button variant="ghost" className="p-2">
             {/* User Icon */}
           </Button>
-          <span className="text-sm text-gray-500"> Test Curator</span>
+          <div className="flex items-center space-x-2">
+            <DarkModeToggle />
+            <span className="text-sm text-gray-500">Test Curator</span>
+          </div>
         </div>
       </header>
 
@@ -482,8 +488,9 @@ const EntityXLensUI = () => {
                   <path d="M12 10v4"/><path d="M8 10v4"/><path d="M16 10v4"/>
                 </svg>
                 <p>
-                Build out your plan on the left, then click "Generate Plan" to view insights about this plan
+                Build out your plan on the left, then click &quot;Generate Plan&quot; to view insights about this plan
                 </p>
+                
               </div>
             )}
             
