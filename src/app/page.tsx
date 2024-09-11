@@ -429,7 +429,7 @@ const EntityXLensUI = () => {
                   </div>
                   {item.name === 'TAXONOMY SEGMENTS' ? (
                     <TaxonomyEditModal onSelect={handleTaxonomySelect} />
-                  ) : item.name === 'ENTITY LIST' ? (
+                  ) : item.name === 'ENTITY GRAPH' ? (
                     <EntityListModal onSubmit={handleEntityListSubmit} />
                   ) : (
                     <Button variant="ghost" size="sm" className="text-blue-500">
