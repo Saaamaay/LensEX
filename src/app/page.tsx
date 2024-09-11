@@ -14,9 +14,16 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { startOfWeek, addWeeks, format, eachDayOfInterval } from 'date-fns';
 import VisualizationComponent from './VisualizationComponent';
 
+const calculatePercentages = (data, view) => {
+  const percentages = {};
+  const totalItems = Object.keys(data).length;
+  Object.keys(data).forEach(key => {
+    percentages[key] = (Math.random() * 100 / totalItems).toFixed(2);
+  });
+  return percentages;
+};
 
 const EntityXLensUI = () => {
-  const [activeTab, setActiveTab] = useState('setup');
   const [selectedTaxonomy, setSelectedTaxonomy] = useState({});
   const [entityList, setEntityList] = useState([]);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
@@ -26,6 +33,8 @@ const EntityXLensUI = () => {
   const [weeklyData, setWeeklyData] = useState([]);
   const [spikeData, setSpikeData] = useState([]);
   const [taxonomyChartData, setTaxonomyChartData] = useState([]);
+  const [currentView, setCurrentView] = useState('main');
+  const [percentages, setPercentages] = useState({});
 
   const targetingOptions = [
     { name: 'GEOGRAPHY', description: 'Any geography' },
@@ -53,7 +62,6 @@ const EntityXLensUI = () => {
   const handleEntityListSubmit = (entities) => {
     setEntityList(entities);
   };
-  
 
   const handleGeneratePlan = () => {
     console.log('Generate Plan button clicked');
@@ -253,17 +261,57 @@ const EntityXLensUI = () => {
     </div>
   );
   
+
   const renderBrandVisualization = () => (
-    <div>
-      <h4 className="font-semibold mb-2">Brand Visualization</h4>
-      <p className="text-sm text-gray-600 mb-2">Visual representation of brand distribution</p>
-      <VisualizationComponent
-        taxonomyData={selectedTaxonomy}
-        currentView="main"
-        setCurrentView={() => {}}
-      />
+    <div className="flex space-x-4">
+      <div className="w-1/2 border rounded-lg p-4">
+        <h4 className="font-semibold mb-2">Brand Visualization</h4>
+        <p className="text-sm text-gray-600 mb-2">Visual representation of brand distribution</p>
+        <VisualizationComponent
+          taxonomyData={selectedTaxonomy}
+          currentView={currentView}
+          setCurrentView={(view) => {
+            setCurrentView(view);
+            const calculatedPercentages = calculatePercentages(selectedTaxonomy, view);
+            setPercentages(calculatedPercentages);
+          }}
+        />
+        {currentView !== 'main' && (
+          <Button onClick={() => setCurrentView('main')} className="mt-4">
+            Back to Main View
+          </Button>
+        )}
+      </div>
+      <div className="w-1/2 border rounded-lg p-4">
+        <h3 className="text-xl font-semibold mb-2">Brand Distribution</h3>
+        <h4 className="text-lg font-bold">{currentView === 'main' ? 'Overview' : currentView}</h4>
+        <p className="text-sm text-gray-500 mb-4">
+          This view organizes articles related to {currentView === 'main' ? 'various categories' : currentView} by the sample into themes, with each theme representing a percentage of the total article views.
+        </p>
+        {Object.keys(percentages).length > 0 ? (
+          <ul>
+            {Object.entries(percentages).map(([topic, percentage]) => (
+              <li key={topic} className="flex justify-between items-center mb-2">
+                <span>{topic}</span>
+                <span className="bg-gray-300 text-gray-700 rounded-full px-2 py-1 text-xs font-semibold">
+                  {percentage}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No data available.</p>
+        )}
+      </div>
     </div>
   );
+
+  useEffect(() => {
+    if (Object.keys(selectedTaxonomy).length > 0) {
+      const calculatedPercentages = calculatePercentages(selectedTaxonomy, currentView);
+      setPercentages(calculatedPercentages);
+    }
+  }, [selectedTaxonomy, currentView]);
 
   return (
     <div className="container mx-auto p-4">
@@ -291,90 +339,77 @@ const EntityXLensUI = () => {
 
       <div className="flex">
         <Card className="w-1/3 mr-4">
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4 w-full">
-                <TabsTrigger value="setup" className="flex-1">Setup</TabsTrigger>
-                <TabsTrigger value="targeting" className="flex-1">Targeting</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="setup">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block mb-2 text-sm font-medium">Name*</label>
-                    <Input placeholder="Give your plan a name" />
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Plan Setup and Targeting</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-2 text-sm font-medium">Name*</label>
+                <Input placeholder="Give your plan a name" />
+              </div>
+              <div>
+                <label className="block mb-2 text-sm font-medium">Dates</label>
+                <div className="flex space-x-2">
+                  <div className="relative flex-1">
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      selectsStart
+                      startDate={startDate}
+                      endDate={endDate}
+                      dateFormat="dd/MM/yyyy"
+                      className="w-full pl-3 pr-8 py-2 border rounded-md"
+                    />
+                    <Button
+                      variant="ghost"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1"
+                      onClick={() => {}}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    </Button>
                   </div>
-                  <div>
-                  <label className="block mb-2 text-sm font-medium">Dates</label>
-                  <div className="flex space-x-2">
-                    <div className="relative flex-1">
-                      <DatePicker
-                        selected={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        selectsStart
-                        startDate={startDate}
-                        endDate={endDate}
-                        dateFormat="dd/MM/yyyy"
-                        className="w-full pl-3 pr-8 py-2 border rounded-md"
-                      />
-                      <Button
-                        variant="ghost"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 p-1"
-                        onClick={() => {}} // The DatePicker will handle opening on click
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                      </Button>
-                    </div>
-                    <span className="flex items-center">-</span>
-                    <div className="relative flex-1">
-                      <DatePicker
-                        selected={endDate}
-                        onChange={(date) => setEndDate(date)}
-                        selectsEnd
-                        startDate={startDate}
-                        endDate={endDate}
-                        minDate={startDate}
-                        dateFormat="dd/MM/yyyy"
-                        className="w-full pl-3 pr-8 py-2 border rounded-md"
-                      />
-                      <Button
-                        variant="ghost"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 p-1"
-                        onClick={() => {}} // The DatePicker will handle opening on click
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                      </Button>
-                    </div>
+                  <span className="flex items-center">-</span>
+                  <div className="relative flex-1">
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      selectsEnd
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={startDate}
+                      dateFormat="dd/MM/yyyy"
+                      className="w-full pl-3 pr-8 py-2 border rounded-md"
+                    />
+                    <Button
+                      variant="ghost"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-1"
+                      onClick={() => {}}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    </Button>
                   </div>
                 </div>
+              </div>
+              {targetingOptions.map((item) => (
+                <div key={item.name} className="flex justify-between items-center py-2 border-b">
+                  <div>
+                    <h3 className="font-semibold text-sm">{item.name}</h3>
+                    <p className="text-sm text-gray-500">{item.description}</p>
+                  </div>
+                  {item.name === 'TAXONOMY SEGMENTS' ? (
+                    <TaxonomyEditModal onSelect={handleTaxonomySelect} />
+                  ) : item.name === 'ENTITY LIST' ? (
+                    <EntityListModal onSubmit={handleEntityListSubmit} />
+                  ) : (
+                    <Button variant="ghost" size="sm" className="text-blue-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
+                      </svg>
+                      Edit
+                    </Button>
+                  )}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="targeting">
-                <div className="space-y-4">
-                  {targetingOptions.map((item) => (
-                    <div key={item.name} className="flex justify-between items-center py-2 border-b">
-                      <div>
-                        <h3 className="font-semibold text-sm">{item.name}</h3>
-                        <p className="text-sm text-gray-500">{item.description}</p>
-                      </div>
-                      {item.name === 'TAXONOMY SEGMENTS' ? (
-                        <TaxonomyEditModal onSelect={handleTaxonomySelect} />
-                      ) : item.name === 'ENTITY LIST' ? (
-                        <EntityListModal onSubmit={handleEntityListSubmit} />
-                      ) : (
-                        <Button variant="ghost" size="sm" className="text-blue-500">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>
-                          </svg>
-                          Edit
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+              ))}
+            </div>
             <Button className="w-full mt-4 bg-blue-500 hover:bg-blue-600 text-white" onClick={handleGeneratePlan}>
               Generate Plan
             </Button>
@@ -392,20 +427,20 @@ const EntityXLensUI = () => {
               </div>
             ) : showResults ? (
               <ScrollArea className="h-[calc(100vh-200px)]">
-                <Tabs defaultValue="brand" className="w-full">
-                  <TabsList>
-                    <TabsTrigger value="brand">Brand Visualization</TabsTrigger>
-                    <TabsTrigger value="spike">Spike Detection</TabsTrigger>
+                <Tabs defaultValue="brand">
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="brand">Brand</TabsTrigger>
                     <TabsTrigger value="reach">Reach</TabsTrigger>
+                    <TabsTrigger value="insights">Insights</TabsTrigger>
                   </TabsList>
                   <TabsContent value="brand">
                     {renderBrandVisualization()}
                   </TabsContent>
-                  <TabsContent value="spike">
-                    {renderSpikeDetection()}
-                  </TabsContent>
                   <TabsContent value="reach">
                     {renderReach()}
+                  </TabsContent>
+                  <TabsContent value="insights">
+                    {renderSpikeDetection()}
                   </TabsContent>
                 </Tabs>
               </ScrollArea>

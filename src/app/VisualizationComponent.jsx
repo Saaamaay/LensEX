@@ -12,10 +12,12 @@ const VisualizationComponent = ({ taxonomyData, currentView, setCurrentView }) =
 
     const data = currentView === 'main' 
       ? Object.keys(taxonomyData).map(key => ({ name: key, value: taxonomyData[key].length }))
-      : taxonomyData[currentView]?.map(item => ({ 
-          name: item, 
-          value: Math.floor(Math.random() * 10) + 1 
-        })) || [];
+      : Array.isArray(taxonomyData[currentView])
+        ? taxonomyData[currentView].map(item => ({ 
+            name: key, 
+            value: Math.floor(Math.random() * 10) + 1 
+          }))
+        : [];
 
     if (data.length === 0) {
       return;
