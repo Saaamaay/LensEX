@@ -22,17 +22,14 @@ const calculatePercentages = (data, view) => {
   
   if (view === 'main') {
     Object.keys(data).forEach(key => {
-      percentages[key] = (Math.random() * 100).toFixed(2);
+      percentages[key] = (data[key].length / Object.keys(data).length * 100).toFixed(2);
     });
   } else if (data[view]) {
     const subtopics = data[view];
     if (Array.isArray(subtopics)) {
+      const total = subtopics.length;
       subtopics.forEach(subtopic => {
-        percentages[subtopic] = (Math.random() * 100).toFixed(2);
-      });
-    } else if (typeof subtopics === 'object') {
-      Object.keys(subtopics).forEach(subtopic => {
-        percentages[subtopic] = (Math.random() * 100).toFixed(2);
+        percentages[subtopic] = (100 / total).toFixed(2);
       });
     }
   }
@@ -265,7 +262,11 @@ const EntityXLensUI = () => {
           }}
         />
         {currentView !== 'main' && (
-          <Button onClick={() => setCurrentView('main')} className="mt-4">
+          <Button onClick={() => {
+            setCurrentView('main');
+            const calculatedPercentages = calculatePercentages(selectedTaxonomy, 'main');
+            setPercentages(calculatedPercentages);
+          }} className="mt-4">
             Back to Main View
           </Button>
         )}

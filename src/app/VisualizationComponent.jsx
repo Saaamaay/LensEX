@@ -14,7 +14,7 @@ const VisualizationComponent = ({ taxonomyData, currentView, setCurrentView }) =
       ? Object.keys(taxonomyData).map(key => ({ name: key, value: taxonomyData[key].length }))
       : Array.isArray(taxonomyData[currentView])
         ? taxonomyData[currentView].map(item => ({ 
-            name: key, 
+            name: item, // Changed from 'key' to 'item'
             value: Math.floor(Math.random() * 10) + 1 
           }))
         : [];

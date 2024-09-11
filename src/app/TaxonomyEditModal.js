@@ -89,14 +89,14 @@ const TaxonomySelector = ({ onSelect }) => {
 const handleSelectAll = () => {
   if (selectAll) {
     setSelectedItems({});
-    onSelect([]);
+    onSelect({});
   } else {
     const allItems = {};
     Object.keys(taxonomyData).forEach(category => {
       allItems[category] = [...taxonomyData[category]];
     });
     setSelectedItems(allItems);
-    onSelect(Object.keys(allItems)); // Pass the main categories
+    onSelect(allItems);
   }
   setSelectAll(!selectAll);
 };
